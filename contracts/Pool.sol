@@ -29,7 +29,7 @@ contract Pool {
 
         owner = msg.sender;
 
-        rewardRate = 10000;
+        rewardRate = 1e18;
 
         lastUpdateTime = block.timestamp;
     }
@@ -40,8 +40,8 @@ contract Pool {
         }
         return
             rewardPerTokenStored +
-            (((block.timestamp - lastUpdateTime) * rewardRate * 1e18) /
-                totalStaked);
+            (((block.timestamp - lastUpdateTime) * rewardRate) /
+                (totalStaked / 1e18)); 
     }
 
     function earned(address account) public view returns (uint) {

@@ -10,55 +10,80 @@ contract Pool {
 
     Hao public hao;
 
-    uint256 public totalStaked;
+    uint public totalStaked;
 
-    uint256 public dailyReward;
+    uint public rewardRate;
 
-    /** all stake users stake balance */
-    mapping(address => uint256) public stakeBalance;
+    uint public lastUpdateTime;
+
+    uint public rewardPerTokenStored;
+
+    mapping(address => uint) public stakeBalance;
+
+    mapping(address => uint) public userRewardPerTokenPaid;
+
+    mapping(address => uint) public rewards;
 
     constructor(Hao _hao) {
         hao = _hao;
 
         owner = msg.sender;
 
-        dailyReward = 0;
+        rewardRate = 1e18;
+
+        lastUpdateTime = block.timestamp;
     }
 
-    /**
-     * Set Daily Reward
-     */
-    function setDailyReward(uint256 reward) public {
-        require(msg.sender == owner, "caller must be the owner");
-
-        require(reward > 0, 'Reward cannot be less than zero');
-
-        dailyReward = reward;
+    function rewardPerToken() public view returns (uint) {
+        if (totalStaked == 0) {
+            return 0;
+        }
+        return
+            rewardPerTokenStored +
+            (((block.timestamp - lastUpdateTime) * rewardRate) /
+                (totalStaked / 1e18)); 
     }
 
-    /**
-     * Stake Token
-     */
-    function stake(uint256 _value) public {
+    function earned(address account) public view returns (uint) {
+        if (totalStaked == 0) {
+            return rewards[account];
+        }
+        return
+            ((stakeBalance[account] * (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) + rewards[account];
+    }
+
+    modifier updateReward(address account) {
+        rewardPerTokenStored = rewardPerToken();
+        lastUpdateTime = block.timestamp;
+
+        rewards[account] = earned(account);
+        userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        _;
+    }
+
+    function stake(uint _value) public updateReward(msg.sender) {
         hao.transferFrom(msg.sender, address(this), _value);
 
-        stakeBalance[msg.sender] += _value;
-
         totalStaked += _value;
+
+        stakeBalance[msg.sender] += _value;
     }
 
-    /**
-     * Unstake Token
-     */
-    function unstake() public {
-        uint256 balance = stakeBalance[msg.sender];
+    function unstake(uint amount) public updateReward(msg.sender) {
+        uint balance = stakeBalance[msg.sender];
 
-        require(balance > 0, 'Staking balance cannot be less than zero');
+        require(balance > 0, "Staking balance cannot be less than zero");
 
-        hao.transfer(msg.sender, balance);
+        totalStaked -= amount;
 
-        stakeBalance[msg.sender] = 0;
+        stakeBalance[msg.sender] -= amount;
 
-        totalStaked -= balance;
+        hao.transfer(msg.sender, amount);
+    }
+
+    function getReward() public updateReward(msg.sender) {
+        uint reward = rewards[msg.sender];
+        rewards[msg.sender] = 0;
+        hao.transfer(msg.sender, reward);
     }
 }

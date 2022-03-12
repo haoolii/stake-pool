@@ -1,3 +1,8 @@
+const HDWalletProvider = require('truffle-hdwallet-provider');
+
+const PRIVATEKEY = "";
+const ENDPOINT = "";
+
 module.exports = {
   // Uncommenting the defaults below 
   // provides for an easier quick-start with Ganache.
@@ -15,6 +20,17 @@ module.exports = {
      host: "127.0.0.1",
      port: 7545,
      network_id: "*"
+   },
+   kovan: {
+    provider: function() {
+      return new HDWalletProvider(
+        //private keys array
+        [PRIVATEKEY],
+        //url to ethereum node
+        ENDPOINT
+      )
+    },
+    network_id: "*"
    }
   },
   //

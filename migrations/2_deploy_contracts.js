@@ -4,6 +4,7 @@ const Pool = artifacts.require("Pool");
 module.exports = async function(deployer, network, accounts) {
   await deployer.deploy(Hao);
   const hao = await Hao.deployed();
-
   await deployer.deploy(Pool, hao.address);
+  const pool = await Pool.deployed();
+  await hao.transfer(pool.address, web3.utils.toWei(`${5000}`, "ether"));
 };

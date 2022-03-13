@@ -19,7 +19,8 @@ contract("Pool Test", ([owner, user, customer]) => {
 
     await hao.transfer(user, tokens(100));
 
-    await hao.transfer(customer, tokens(500));
+    await hao.transfer(pool.address, tokens(500));
+
   });
 
   describe("Stake Pool", () => {
@@ -91,6 +92,14 @@ contract("Pool Test", ([owner, user, customer]) => {
 
     it('unstake again', async() => {
       await pool.unstake(tokens(50), { from: owner });
+
+      totalStaked = await pool.totalStaked();
+
+      assert.equal(totalStaked.toString(), tokens(0), "totalStaked is not 0");
+    })
+
+    it('getReward', async() => {
+      await pool.getReward({ from: owner });
 
       totalStaked = await pool.totalStaked();
 

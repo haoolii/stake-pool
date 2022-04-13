@@ -29,7 +29,7 @@ contract Pool {
 
         owner = msg.sender;
 
-        rewardRate = 1e18;
+        rewardRate = 1e16;
 
         lastUpdateTime = block.timestamp;
     }

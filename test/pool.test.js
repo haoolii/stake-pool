@@ -13,7 +13,7 @@ contract("Pool Test", ([owner, user, customer]) => {
   }
 
   before(async () => {
-    hao = await Hao.new();
+    hao = await Hao.new(tokens(60000000));
 
     pool = await Pool.new(hao.address);
 
